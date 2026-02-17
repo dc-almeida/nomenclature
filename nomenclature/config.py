@@ -34,7 +34,7 @@ class CodeListConfig(BaseModel):
     repositories: list[CodeListFromRepository] = Field(
         default_factory=list, alias="repository"
     )
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     @field_validator("repositories", mode="before")
     @classmethod
@@ -258,7 +258,9 @@ class TimeDomainConfig(BaseModel):
 
         elif df.time_domain == "mixed":
             if not self.mixed_allowed:
-                raise TimeDomainError("Invalid time domain - `mixed` found, but not allowed.")
+                raise TimeDomainError(
+                    "Invalid time domain - `mixed` found, but not allowed."
+                )
 
             self.check_datetime_format(df)
         elif df.time_domain == "datetime":

@@ -34,7 +34,7 @@ class CodeListConfig(BaseModel):
     repositories: list[CodeListFromRepository] = Field(
         default_factory=list, alias="repository"
     )
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
     @field_validator("repositories", mode="before")
     @classmethod
@@ -183,7 +183,7 @@ class RegionMappingConfig(BaseModel):
     repositories: list[MappingRepository] = Field(
         default_factory=list, alias="repository"
     )
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
     @field_validator("repositories", mode="before")
     @classmethod
@@ -210,7 +210,7 @@ class TimeDomainConfig(BaseModel):
         # pattern_msg="Invalid timezone format. Expected format: 'UTC±HH:MM'."
     )
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
     @model_validator(mode="after")
     @classmethod
@@ -258,7 +258,9 @@ class TimeDomainConfig(BaseModel):
 
         elif df.time_domain == "mixed":
             if not self.mixed_allowed:
-                raise TimeDomainError("Invalid time domain - `mixed` found, but not allowed.")
+                raise TimeDomainError(
+                    "Invalid time domain - `mixed` found, but not allowed."
+                )
 
             self.check_datetime_format(df)
         elif df.time_domain == "datetime":
@@ -294,7 +296,9 @@ class NomenclatureConfig(BaseModel):
         default_factory=TimeDomainConfig, alias="time-domain"
     )
 
-    model_config = ConfigDict(use_enum_values=True, populate_by_name=True)
+    model_config = ConfigDict(
+        use_enum_values=True, validate_by_name=True, validate_by_alias=True
+    )
 
     @field_validator("illegal_characters", mode="before")
     @classmethod

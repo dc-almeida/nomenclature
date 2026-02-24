@@ -210,7 +210,7 @@ class VariableCode(Code):
     check_aggregate: bool | None = Field(default=False, alias="check-aggregate")
     components: list[str] | dict[str, list[str]] | None = None
     drop_negative_weights: bool | None = None
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
     @field_validator("region_aggregation", "components", "unit", mode="before")
     @classmethod

@@ -26,7 +26,7 @@ def test_DataValidator_simple_from_file():
                     "validation": [
                         {
                             "upper_bound": 2.5,
-                            "lower_bound": 1.0,  # test that integer in yaml is cast to float
+                            "lower_bound": 1.0,  # Test integer in yaml is cast to float
                         }
                     ],
                 }
@@ -127,12 +127,12 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
         DATA_VALIDATION_TEST_DIR / f"error_unknown_{dimension}.yaml"
     )
 
-    # validating against a DataStructure with all dimensions raises
+    # Validating against a DataStructure with all dimensions raises
     dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
     with pytest.RaisesGroup(NoTracebackException) as excinfo:
         data_validator.validate_with_definition(dsd)
     assert excinfo.group_contains(NoTracebackException, match=match)
-    # validating against a DataStructure without the offending dimension passes
+    # Validating against a DataStructure without the offending dimension passes
     dsd = DataStructureDefinition(
         TEST_DATA_DIR / "validation" / "definitions",
         dimensions=[dim for dim in ["region", "variable"] if dim != dimension],
@@ -144,7 +144,7 @@ def test_DataValidator_apply_no_matching_data(simple_df):
     data_validator = DataValidator.from_file(
         DATA_VALIDATION_TEST_DIR / "validation_simple.yaml"
     )
-    # no data matches validation criteria, `apply()` passes and returns unchanged object
+    # No data matches validation criteria, `apply()` passes and returns unchanged object
     assert data_validator.apply(simple_df) == simple_df
 
 
@@ -196,7 +196,7 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
     with pytest.raises(ValueError, match="Data validation failed"):
         data_validator.apply(simple_df)
 
-    # check if the log message contains the correct information
+    # Check if the log message contains the correct information
     assert failed_validation_message in caplog.text
 
 
@@ -221,7 +221,7 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
     )
 
     if file == "legacy":
-        # prints both error and low warning levels for legacy format
+        # Prints both error and low warning levels for legacy format
         # because these are treated as independent validation-criteria
         failed_validation_message += """
 
@@ -236,7 +236,7 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
         )
 
     if value == 3.0:
-        # prints each warning level when each is triggered by different rows
+        # Prints each warning level when each is triggered by different rows
         failed_validation_message = """
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 5.0, lower_bound: 1.0
        model scenario region        variable   unit  year  value warning_level
@@ -249,7 +249,7 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
     with pytest.raises(ValueError, match="Data validation failed"):
         data_validator.apply(simple_df)
 
-    # check if the log message contains the correct information
+    # Check if the log message contains the correct information
     assert failed_validation_message in caplog.text
 
 

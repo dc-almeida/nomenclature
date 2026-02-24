@@ -78,7 +78,7 @@ class Repository(BaseModel):
     hash: str | None = None
     release: str | None = None
     local_path: Path | None = Field(default=None, validate_default=True)
-    # defined via the `repository` name in the configuration
+    # Defined via the `repository` name in the configuration
 
     @model_validator(mode="after")
     @classmethod
@@ -183,6 +183,7 @@ class RegionMappingConfig(BaseModel):
     repositories: list[MappingRepository] = Field(
         default_factory=list, alias="repository"
     )
+
     model_config = ConfigDict(populate_by_name=True)
 
     @field_validator("repositories", mode="before")
@@ -207,7 +208,6 @@ class TimeDomainConfig(BaseModel):
     timezone: str | None = Field(
         default=None,
         pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$",
-        # pattern_msg="Invalid timezone format. Expected format: 'UTC±HH:MM'."
     )
 
     model_config = ConfigDict(populate_by_name=True)
@@ -227,8 +227,8 @@ class TimeDomainConfig(BaseModel):
 
     @property
     def datetime_format(self) -> str:
-        # if year is a separate column, exclude it from format
-        # if not, datetime is coerced in IamDataFrame, and include seconds
+        # If year is a separate column, exclude it from format
+        # If not, datetime is coerced to IamDataFrame, and include seconds
         return "%Y-%m-%d %H:%M:%S" if self.datetime_allowed else None
 
     def check_datetime_format(self, df: IamDataFrame) -> None:
@@ -238,7 +238,7 @@ class TimeDomainConfig(BaseModel):
         for d in _datetime:
             try:
                 _dt = datetime.strptime(str(d), self.datetime_format + "%z")
-                # only check timezone if a specific timezone is required
+                # Only check timezone if a specific timezone is required
                 if self.timezone and not _dt.tzname() == self.timezone:
                     errors.append(TimeDomainError(f"{d} - invalid timezone"))
             except ValueError:

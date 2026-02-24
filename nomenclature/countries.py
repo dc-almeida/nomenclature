@@ -24,21 +24,21 @@ PYCOUNTRY_NAME_OVERRIDE = {
     "Venezuela, Bolivarian Republic of": "Venezuela",
     "Palestine, State of": "Palestine",
     "Taiwan, Province of China": "Taiwan",
-    "Türkiye": "Turkey",  # revert change in pycountry on Sep 29, 2023
+    "Türkiye": "Turkey",  # Revert change in pycountry on Sep 29, 2023
     "Virgin Islands, British": "British Virgin Islands",
     "Virgin Islands, U.S.": "United States Virgin Islands",
 }
 PYCOUNTRY_NAME_ADD = [
     dict(
         name="Kosovo",
-        alpha_3="KOS",  # see https://olympics.com/ioc/kosovo
-        alpha_2="XK",  # see https://en.wikipedia.org/wiki/XK_(user_assigned_code)
+        alpha_3="KOS",  # See https://olympics.com/ioc/kosovo
+        alpha_2="XK",  # See https://en.wikipedia.org/wiki/XK_(user_assigned_code)
         note="Kosovo is recognized under UNSC resolution 1244, "
         "using preliminary alpha_3 and alpha_2 codes (ISO-3166-1 not assigned)",
     ),
 ]
 
-# the European Commission uses alternative ISO2 codes
+# The European Commission uses alternative ISO2 codes
 ALTERNATIVE_ALPHA2_CODES = {
     "EL": "GR",
     "UK": "GB",
@@ -56,7 +56,7 @@ class Countries(pycountry.ExistingCountries):
     def __init__(self):
         super().__init__(os.path.join(pycountry.DATABASE_DIR, "iso3166-1.json"))
 
-        # modify country names
+        # Modify country names
         for iso_name, nc_name in PYCOUNTRY_NAME_OVERRIDE.items():
             obj = self.get(name=iso_name)
             obj.name = nc_name
@@ -64,7 +64,7 @@ class Countries(pycountry.ExistingCountries):
             obj.note = "Name changed from ISO 3166 in line with community standards"
             self.indices["name"][nc_name.lower()] = obj
 
-        # add countries that are not officially recognized
+        # Add countries that are not officially recognized
         # but relevant for IAM community
         for entry in PYCOUNTRY_NAME_ADD:
             obj = self.data_class(**entry)
@@ -99,7 +99,7 @@ class Countries(pycountry.ExistingCountries):
         """
         country = super().get(**kwargs)
 
-        # special handling for alpha-2 codes used by the European Commission
+        # Special handling for alpha-2 codes used by the European Commission
         if country is None and "alpha_2" in kwargs:
             country = super().get(alpha_2=ALTERNATIVE_ALPHA2_CODES[kwargs["alpha_2"]])
             if country is not None:

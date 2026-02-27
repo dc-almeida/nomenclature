@@ -1,9 +1,11 @@
 import logging
+import gc
 import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from shutil import rmtree
 
 import yaml
 from git import Repo
@@ -19,6 +21,7 @@ from pydantic import (
 )
 
 from nomenclature.exceptions import TimeDomainError, TimeDomainErrorGroup
+from nomenclature.utils import handle_remove_readonly
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +112,20 @@ class Repository(BaseModel):
             repo = Repo.clone_from(self.url, to_path)
         else:
             repo = Repo(to_path)
-            repo.remotes.origin.fetch()
+            # If the URL has changed, remove existing directory and re-clone
+            if repo.remotes.origin.url != self.url:
+                logger.warning(
+                    f"Repository URL changed from '{repo.remotes.origin.url}' to '{self.url}'. "
+                    f"Re-cloning repository to '{to_path}'..."
+                )
+                repo.close()  # Close repo before removing directory
+                del repo  # Delete reference to allow garbage collection
+                gc.collect()  # Force garbage collection to release file handles
+
+                rmtree(to_path, onerror=handle_remove_readonly)
+                repo = Repo.clone_from(self.url, to_path)
+            else:
+                repo.remotes.origin.fetch()
         self.local_path = to_path
         repo.git.reset("--hard")
         repo.git.checkout(self.revision)
@@ -311,7 +327,10 @@ class NomenclatureConfig(BaseModel):
         cls, v: "NomenclatureConfig"
     ) -> "NomenclatureConfig":
         mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
-        repos = {**v.definitions.repos, **mapping_repos}
+        repos: dict[str, list[MappingRepository]] = {
+            **v.definitions.repos,
+            **mapping_repos,
+        }
         for use, repositories in repos.items():
             repository_names = [repository.name for repository in repositories]
             if unknown_repos := repository_names - v.repositories.keys():

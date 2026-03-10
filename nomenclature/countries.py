@@ -1,3 +1,5 @@
+"""ISO 3166 country database with community naming conventions."""
+
 import os
 import logging
 
@@ -94,7 +96,7 @@ class Countries(pycountry.ExistingCountries):
 
         Returns
         -------
-        :class:`pycountry.Country`
+        :class:`pycountry.db.Country`
 
         """
         country = super().get(**kwargs)
@@ -109,8 +111,45 @@ class Countries(pycountry.ExistingCountries):
 
         return country
 
+    def get_mapping(self, from_attr: str, to_attr: str) -> dict[str, str]:
+        """Get a mapping from one country attribute to another
+
+        Parameters
+        ----------
+        from_attr : str
+            Source attribute (one of "name", "alpha_3", "alpha_2")
+        to_attr : str
+            Target attribute (one of "name", "alpha_3", "alpha_2")
+
+        Returns
+        -------
+        dict
+            Mapping from source attribute to target attribute for all countries
+
+        Examples
+        --------
+        >>> countries.get_mapping("alpha_3", "name")
+        {'USA': 'United States', 'DEU': 'Germany', ...}
+
+        >>> countries.get_mapping("alpha_2", "alpha_3")
+        {'US': 'USA', 'DE': 'DEU', ...}
+        """
+
+        valid_attrs = {"name", "alpha_3", "alpha_2"}
+        if from_attr not in valid_attrs or to_attr not in valid_attrs:
+            raise ValueError(
+                f"Attributes must be one of {valid_attrs}, "
+                f"got from_attr='{from_attr}', to_attr='{to_attr}'"
+            )
+
+        return {
+            getattr(country, from_attr): getattr(country, to_attr)
+            for country in self.objects
+            if hasattr(country, from_attr) and hasattr(country, to_attr)
+        }
+
     @property
-    def names(self):
+    def names(self) -> list[str]:
         return [country.name for country in self.objects]
 
 

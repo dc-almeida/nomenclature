@@ -15,4 +15,7 @@ API documentation
    api/regionprocessor
    api/countries
    api/nuts
+   api/aggregator
+   api/validator
+   api/requireddata
    api/testing

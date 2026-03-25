@@ -194,7 +194,7 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0         error
   1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0         error"""
     )
-    with pytest.raises(DataValidationError) as excinfo:
+    with pytest.raises(DataValidationError):
         data_validator.apply(simple_df)
 
     # Check if the log message contains the correct information
@@ -247,7 +247,7 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
        model scenario region        variable   unit  year  value warning_level
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    3.0           low"""
 
-    with pytest.raises(DataValidationError, match="Data validation failed") as excinfo:
+    with pytest.raises(DataValidationError, match="Data validation failed"):
         data_validator.apply(simple_df)
 
     # Check if the log message contains the correct information

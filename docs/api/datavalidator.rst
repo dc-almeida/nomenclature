@@ -2,8 +2,8 @@
 
 .. currentmodule:: nomenclature
 
-Data validation
-===============
+**DataValidator**
+=================
 
 **Data validation** checks if timeseries data values are within specified ranges.
 
@@ -67,8 +67,6 @@ tolerance of 1 to the value of 2, with warning level ``error`` by default.
 Standard usage
 --------------
 
-Run the following in a Python script to check that an IAMC dataset has valid data.
-
 .. code-block:: python
 
   from nomenclature.processor import DataValidator
@@ -76,3 +74,6 @@ Run the following in a Python script to check that an IAMC dataset has valid dat
   # ...setting directory/file paths and loading dataset
 
   DataValidator.from_file(data_val_yaml).apply(df)
+
+.. autoclass:: DataValidator
+   :members: from_file, from_codelist, apply

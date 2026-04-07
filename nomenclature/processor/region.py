@@ -842,6 +842,7 @@ class RegionProcessor(Processor):
         for common_region in mapping.common_regions:
             countries: list[str] = []
             for constituent in common_region.constituent_regions:
+                # Apply renaming if applicable to get the correct region name
                 target_name = mapping.rename_mapping.get(constituent, constituent)
                 region_code = self.region_codelist[target_name]
                 if region_code.countries:

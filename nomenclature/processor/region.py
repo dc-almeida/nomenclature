@@ -838,14 +838,11 @@ class RegionProcessor(Processor):
             countries from all of its constituent native regions.
         """
         mapping = self.mappings[model]
-        native_to_target = {
-            r.name: r.target_native_region for r in mapping.native_regions
-        }
         result: dict[str, list[str]] = {}
         for common_region in mapping.common_regions:
             countries: list[str] = []
             for constituent in common_region.constituent_regions:
-                target_name = native_to_target.get(constituent, constituent)
+                target_name = mapping.rename_mapping.get(constituent, constituent)
                 region_code = self.region_codelist[target_name]
                 if region_code.countries:
                     countries.extend(region_code.countries)

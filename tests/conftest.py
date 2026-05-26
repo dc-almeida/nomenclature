@@ -56,7 +56,12 @@ def add_meta(df):
 
 
 def remove_readonly(func, path, excinfo):
-    os.chmod(path, stat.S_IWRITE)
+    # Set full permissions for directories (need execute to traverse),
+    # and write permissions for files
+    if os.path.isdir(path):
+        os.chmod(path, 0o777)
+    else:
+        os.chmod(path, 0o666)
     func(path)
 
 

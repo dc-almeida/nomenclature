@@ -16,10 +16,11 @@ def get_relative_path(path: Path):
 # Use rmtree with error handler for Windows readonly files
 def handle_remove_readonly(func, path, excinfo):
     import os
-    import stat
 
-    if not os.access(path, os.W_OK):
-        os.chmod(path, stat.S_IWUSR)
-        func(path)
+    # Set full permissions for directories (need execute to traverse),
+    # and write permissions for files
+    if os.path.isdir(path):
+        os.chmod(path, 0o777)
     else:
-        raise
+        os.chmod(path, 0o666)
+    func(path)

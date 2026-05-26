@@ -127,32 +127,40 @@ class Repository(BaseModel):
 
     def fetch_repo(self, to_path):
         to_path = to_path if isinstance(to_path, Path) else Path(to_path)
+        repo = None
 
-        if not to_path.is_dir():
-            repo = Repo.clone_from(self.url, to_path)
-        else:
-            repo = Repo(to_path)
-            # If the URL has changed, remove existing directory and re-clone
-            if repo.remotes.origin.url != self.url:
-                logger.warning(
-                    f"Repository URL changed from '{repo.remotes.origin.url}' to '{self.url}'. "
-                    f"Re-cloning repository to '{to_path}'..."
-                )
-                repo.close()  # Close repo before removing directory
-                del repo  # Delete reference to allow garbage collection
-                gc.collect()  # Force garbage collection to release file handles
-
-                rmtree(to_path, onerror=handle_remove_readonly)
+        try:
+            if not to_path.is_dir():
                 repo = Repo.clone_from(self.url, to_path)
             else:
-                repo.remotes.origin.fetch()
-        self.local_path = to_path
-        repo.git.reset("--hard")
-        repo.git.checkout(self.revision)
-        repo.git.reset("--hard")
-        repo.git.clean("-xdf")
-        if self.revision == "main":
-            repo.remotes.origin.pull()
+                repo = Repo(to_path)
+
+                # If the URL has changed, remove existing directory and re-clone
+                if repo.remotes.origin.url != self.url:
+                    logger.warning(
+                        f"Repository URL changed from '{repo.remotes.origin.url}' to '{self.url}'. "
+                        f"Re-cloning repository to '{to_path}'..."
+                    )
+                    repo.close()
+                    repo = None
+
+                    rmtree(to_path, onerror=handle_remove_readonly)
+                    repo = Repo.clone_from(self.url, to_path)
+                else:
+                    repo.remotes.origin.fetch()
+
+            self.local_path = to_path
+            repo.git.reset("--hard")
+            repo.git.checkout(self.revision)
+            repo.git.reset("--hard")
+            repo.git.clean("-xdf")
+            if self.revision == "main":
+                repo.remotes.origin.pull()
+
+        finally:
+            if repo is not None:
+                repo.close()
+
         self.check_external_repo_double_stacking()
 
     def check_external_repo_double_stacking(self):

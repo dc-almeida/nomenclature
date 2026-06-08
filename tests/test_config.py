@@ -28,9 +28,10 @@ def test_unknown_repo_raises():
         NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "unknown_repo.yaml")
 
 
-def test_multiple_definition_repos():
+def test_multiple_definition_repos(tmp_path):
     nomenclature_config = NomenclatureConfig.from_file(
-        MODULE_TEST_DATA_DIR / "multiple_repos_per_dimension.yaml"
+        MODULE_TEST_DATA_DIR / "multiple_repos_per_dimension.yaml",
+        target_dir=tmp_path,
     )
     try:
         exp_repos = {"common-definitions", "legacy-definitions"}
@@ -39,9 +40,10 @@ def test_multiple_definition_repos():
         clean_up_external_repos(nomenclature_config.repositories)
 
 
-def test_multiple_mapping_repos():
+def test_multiple_mapping_repos(tmp_path):
     nomenclature_config = NomenclatureConfig.from_file(
-        MODULE_TEST_DATA_DIR / "multiple_repos_for_mapping.yaml"
+        MODULE_TEST_DATA_DIR / "multiple_repos_for_mapping.yaml",
+        target_dir=tmp_path,
     )
     try:
         exp_repos = {"common-definitions", "legacy-definitions"}
@@ -108,17 +110,19 @@ def test_invalid_config_dimensions_raises():
     "config_file",
     ["external_repo_filters.yaml", "multiple_external_repos_filters.yaml"],
 )
-def test_config_with_filter(config_file):
-    config = NomenclatureConfig.from_file(TEST_DATA_DIR / "config" / config_file)
+def test_config_with_filter(config_file, tmp_path):
+    config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / config_file, target_dir=tmp_path
+    )
     try:
         assert isinstance(config.definitions.variable.repositories, list)
     finally:
         clean_up_external_repos(config.repositories)
 
 
-def test_config_external_repo_mapping_filter():
+def test_config_external_repo_mapping_filter(tmp_path):
     config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "filter_mappings.yaml"
+        TEST_DATA_DIR / "config" / "filter_mappings.yaml", target_dir=tmp_path
     )
     exp = MappingRepository(
         name="common-definitions", include=["MESSAGEix-GLOBIOM 2.1-M-R12"]

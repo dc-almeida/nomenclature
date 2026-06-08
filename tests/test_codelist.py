@@ -532,9 +532,10 @@ def test_MetaCodeList_from_directory():
     assert obs == exp
 
 
-def test_multiple_external_repos():
+def test_multiple_external_repos(tmp_path):
     nomenclature_config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "multiple_repos_per_dimension.yaml"
+        TEST_DATA_DIR / "config" / "multiple_repos_per_dimension.yaml",
+        target_dir=tmp_path,
     )
     try:
         variables = VariableCodeList.from_directory(
@@ -593,9 +594,10 @@ def test_variablecodelist_list_missing_variables_to_new_file(simple_df, tmp_path
     "codelist_filter",
     [None, {"name": ["Primary Energy*", "Final Energy*"], "tier": 2}],
 )
-def test_variable_code_list_external_repo_with_filters(codelist_filter):
+def test_variable_code_list_external_repo_with_filters(codelist_filter, tmp_path):
     nomenclature_config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "external_repo_filters.yaml"
+        TEST_DATA_DIR / "config" / "external_repo_filters.yaml",
+        target_dir=tmp_path,
     )
     try:
         codelist = VariableCodeList.from_directory(
@@ -630,9 +632,10 @@ def test_variable_code_list_external_repo_with_filters(codelist_filter):
         )
 
 
-def test_region_code_list_external_repo_with_filters():
+def test_region_code_list_external_repo_with_filters(tmp_path):
     nomenclature_config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "external_repo_filters.yaml"
+        TEST_DATA_DIR / "config" / "external_repo_filters.yaml",
+        target_dir=tmp_path,
     )
     try:
         regions = RegionCodeList.from_directory(

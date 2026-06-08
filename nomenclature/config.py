@@ -1,5 +1,4 @@
 import logging
-import gc
 import re
 from datetime import datetime
 from enum import Enum
@@ -401,7 +400,9 @@ class NomenclatureConfig(BaseModel):
             repo.fetch_repo(target_folder / repo_name)
 
     @classmethod
-    def from_file(cls, file: Path, dry_run: bool = False):
+    def from_file(
+        cls, file: Path, dry_run: bool = False, target_dir: Path | None = None
+    ) -> "NomenclatureConfig":
         """Read a DataStructureConfig from a file
 
         Parameters
@@ -414,5 +415,6 @@ class NomenclatureConfig(BaseModel):
             config = yaml.safe_load(stream)
         instance = cls(**config)
         if not dry_run:
-            instance.fetch_repos(file.parent)
+            clone_dir = target_dir if target_dir is not None else file.parent
+            instance.fetch_repos(clone_dir)
         return instance

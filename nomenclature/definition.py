@@ -35,7 +35,7 @@ SPECIAL_CODELIST = {
 class DataStructureDefinition:
     """Definition of datastructure codelists for dimensions used in the IAMC format"""
 
-    def __init__(self, path, dimensions=None):
+    def __init__(self, path, dimensions=None, target_dir=None):
         """
 
         Parameters
@@ -45,6 +45,9 @@ class DataStructureDefinition:
         dimensions : list of str, optional
             List of :meth:`CodeList` names. Each CodeList is initialized
             from a sub-folder of `path` of that name.
+        target_dir : str or path-like, optional
+            Directory where external repositories will be cloned. Defaults to the
+            project folder. Useful for test isolation.
         """
 
         if not isinstance(path, Path):
@@ -54,7 +57,7 @@ class DataStructureDefinition:
         self.project = self.project_folder.name.split("-workflow")[0]
 
         if (file := self.project_folder / "nomenclature.yaml").exists():
-            self.config = NomenclatureConfig.from_file(file=file)
+            self.config = NomenclatureConfig.from_file(file=file, target_dir=target_dir)
         else:
             self.config = NomenclatureConfig()
 

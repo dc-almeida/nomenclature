@@ -265,13 +265,14 @@ def test_region_processor_unexpected_region_raises():
         )
 
 
-def test_mapping_from_external_repository():
+def test_mapping_from_external_repository(tmp_path):
     # This test reads definitions and the mapping for only MESSAGEix-GLOBIOM 2.1-M-R12 # from an external repository only
     try:
         processor = RegionProcessor.from_directory(
             TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "mappings",
             dsd := DataStructureDefinition(
-                TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "definitions"
+                TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "definitions",
+                target_dir=tmp_path,
             ),
         )
         assert {"REMIND-MAgPIE 3.1-4.6"} == set(processor.mappings.keys())
@@ -279,7 +280,7 @@ def test_mapping_from_external_repository():
         clean_up_external_repos(dsd.config.repositories)
 
 
-def test_mapping_from_external_repository_missing_regions_raises():
+def test_mapping_from_external_repository_missing_regions_raises(tmp_path):
     try:
         with pytest.raises(
             pydantic.ValidationError,
@@ -292,7 +293,8 @@ def test_mapping_from_external_repository_missing_regions_raises():
                 dsd := DataStructureDefinition(
                     TEST_FOLDER_REGION_PROCESSING
                     / "external_repo_test_missing_region"
-                    / "definitions"
+                    / "definitions",
+                    target_dir=tmp_path,
                 ),
             )
     finally:

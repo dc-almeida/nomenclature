@@ -28,8 +28,8 @@ class CountryProcessor(RegionProcessor):
         cls,
         dsd: DataStructureDefinition,
         models: list[str],
-        hierarchies: list[str] = ["R5", "R9", "R10"],
-        skip_patterns: list[str] | None = ["Other (R*)"],
+        hierarchies: set[str] = {"R5", "R9", "R10"},
+        skip_patterns: list[str] | None = None,
     ):
         """Create a processor for country-to-regional aggregation.
 
@@ -62,24 +62,24 @@ class CountryProcessor(RegionProcessor):
         if not models:
             raise ValueError("No models configured for country processor")
         skip_patterns = ["Other (R*)"] + (skip_patterns or [])
-        available_hierarchies = set(hierarchies) & set(dsd.region.hierarchy)
+        available_hierarchies = hierarchies & set(dsd.region.hierarchy)
 
         # Extract regional aggregates from codelist for given hierarchies
         regional_aggregates = {}
         for hierarchy in available_hierarchies:
-            for code in dsd.region.filter(hierarchy=hierarchy).items():
+            for region_code in dsd.region.filter(hierarchy=hierarchy).values():
                 if skip_patterns and any(
-                    re.match(escape_regexp(pattern), code[0])
+                    re.match(escape_regexp(pattern), region_code.name)
                     for pattern in skip_patterns
                 ):
                     continue
-                if not code[1].countries:
+                if not region_code.countries:
                     raise ValueError(
-                        f"List of constituent countries for region '{code[0]}' "
+                        f"List of constituent countries for region '{region_code.name}' "
                         "not found in codelist."
                     )
-                if code[1].countries:
-                    regional_aggregates[code[0]] = code[1].countries
+                if region_code.countries:
+                    regional_aggregates[region_code.name] = region_code.countries
 
         if not regional_aggregates:
             logger.warning(
@@ -89,15 +89,11 @@ class CountryProcessor(RegionProcessor):
 
         # Get all countries from the codelist
         country_names = set(countries.names)
-        all_countries_in_codelist = [
-            region_name
-            for region_name in dsd.region.mapping.keys()
-            if region_name in country_names
-        ]
+        all_countries_in_codelist = dsd.region.filter(name=country_names).values()
 
         # Create native regions for all countries (to keep them in output)
         native_regions = [
-            NativeRegion(name=country) for country in all_countries_in_codelist
+            NativeRegion(name=country.name) for country in all_countries_in_codelist
         ]
 
         # Create common regions for aggregation

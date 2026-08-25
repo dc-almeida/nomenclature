@@ -639,7 +639,7 @@ class CodeList(BaseModel):
                     pattern = re.compile(escape_regexp(filter_value) + "$")
                     return re.match(pattern, code_value) is not None
                 # If list, recursive
-                if isinstance(filter_value, list):
+                if isinstance(filter_value, (list, tuple, set)):
                     return any(
                         check_attribute_match(code_value, value)
                         for value in filter_value

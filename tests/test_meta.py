@@ -5,7 +5,7 @@ from pyam import IamDataFrame
 from pyam.utils import IAMC_IDX
 from nomenclature.processor.validator import WarningEnum
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.processor.meta import MetaValidator
+from nomenclature.processor.meta_validator import MetaValidator
 from nomenclature.exceptions import (
     NoTracebackException,
     MetaValidationError,

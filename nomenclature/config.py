@@ -119,11 +119,10 @@ class Repository(BaseModel):
     # Defined via the `repository` name in the configuration
 
     @model_validator(mode="after")
-    @classmethod
-    def check_hash_and_release(cls, v: "Repository") -> "Repository":
-        if v.hash and v.release:
+    def check_hash_and_release(self) -> "Repository":
+        if self.hash and self.release:
             raise ValueError("Either `hash` or `release` can be provided, not both.")
-        return v
+        return self
 
     @field_validator("local_path")
     @classmethod
@@ -273,7 +272,8 @@ class ProcessorConfig(BaseModel):
     """Configuration for region processor settings."""
 
     nuts: list[str] = Field(default_factory=list, alias="nuts-processor")
-    region_processor: bool = Field(default=False, alias="region-processor")
+    country: list[str] = Field(default_factory=list, alias="country-processor")
+    region: bool = Field(default=False, alias="region-processor")
 
     model_config = ConfigDict(
         validate_by_name=True, validate_by_alias=True, extra="forbid"
@@ -293,40 +293,32 @@ class TimeDomainConfig(BaseModel):
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
     @model_validator(mode="after")
-    @classmethod
-    def validate_datetime_and_timezone(
-        cls, v: "TimeDomainConfig"
-    ) -> "TimeDomainConfig":
-        if v.timezone is not None and not v.datetime_allowed:
+    def validate_datetime_and_timezone(self) -> "TimeDomainConfig":
+        if self.timezone is not None and not self.datetime_allowed:
             raise ValueError("'timezone' is set but 'datetime' is not allowed")
-        return v
+        return self
 
     @property
     def mixed_allowed(self) -> bool:
         return self.year_allowed and self.datetime_allowed
 
-    @property
-    def datetime_format(self) -> str:
-        # If year is a separate column, exclude it from format
-        # If not, datetime is coerced to IamDataFrame, and include seconds
-        return "%Y-%m-%d %H:%M:%S" if self.datetime_allowed else None
+    def check_datetime_timezone(self, df: IamDataFrame) -> None:
+        """Validate that datetime values use the configured timezone."""
 
-    def check_datetime_format(self, df: IamDataFrame) -> None:
-        """Validate that datetime values conform to configured format and timezone."""
-        errors = []
-        _datetime = [d for d in df.time if isinstance(d, datetime)]
-        for d in _datetime:
-            try:
-                _dt = datetime.strptime(str(d), self.datetime_format + "%z")
-                # Only check timezone if a specific timezone is required
-                if self.timezone and not _dt.tzname() == self.timezone:
-                    errors.append(TimeDomainError(f"{d} - invalid timezone"))
-            except ValueError:
-                errors.append(TimeDomainError(f"{d} - missing timezone"))
+        # Only check timezone if a specific timezone is required
+        if not self.timezone:
+            return None
+
+        errors = [
+            TimeDomainError(f"{time} - invalid timezone") for time in
+            [time for time in df.time if isinstance(time, datetime)]
+            if time.tzname() != self.timezone
+        ]
         if errors:
             raise TimeDomainErrorGroup(
-                "The following datetime values are invalid:", errors
+                "The following datetime items have an invalid timezone:", errors
             )
+        return None
 
     def validate_datetime(
         self, df: IamDataFrame, dimensions: list[str] | None = None
@@ -358,14 +350,14 @@ class TimeDomainConfig(BaseModel):
                 raise TimeDomainError(
                     "Invalid time domain - `mixed` found, but not allowed."
                 )
+            self.check_datetime_timezone(df)
 
-            self.check_datetime_format(df)
         elif df.time_domain == "datetime":
             if not self.datetime_allowed:
                 raise TimeDomainError(
                     "Invalid time domain - `datetime` found, but not allowed."
                 )
-            self.check_datetime_format(df)
+            self.check_datetime_timezone(df)
         else:
             raise TimeDomainError(
                 "IamDataFrame.time_domain must be one of ['year', 'mixed', "
@@ -407,31 +399,29 @@ class NomenclatureConfig(BaseModel):
         return v if isinstance(v, list) else [v]
 
     @model_validator(mode="after")
-    @classmethod
-    def check_definitions_repository(
-        cls, v: "NomenclatureConfig"
-    ) -> "NomenclatureConfig":
+    def check_definitions_repository(self) -> "NomenclatureConfig":
         """Check that all repositories referenced in definitions and mappings exist."""
-        mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
+        mapping_repos = (
+            {"mappings": self.mappings.repositories} if self.mappings else {}
+        )
         repos: dict[str, list[MappingRepository]] = {
-            **v.definitions.repos,
+            **self.definitions.repos,
             **mapping_repos,
         }
         for use, repositories in repos.items():
             repository_names = [repository.name for repository in repositories]
-            if unknown_repos := repository_names - v.repositories.keys():
+            if unknown_repos := repository_names - self.repositories.keys():
                 raise ValueError((f"Unknown repository {unknown_repos} in '{use}'."))
-        return v
+        return self
 
     @model_validator(mode="after")
-    @classmethod
-    def check_nuts_consistency(cls, v: "NomenclatureConfig") -> "NomenclatureConfig":
-        if v.processor.nuts and not v.definitions.region.nuts:
+    def check_nuts_consistency(self) -> "NomenclatureConfig":
+        if self.processor.nuts and not self.definitions.region.nuts:
             raise ValueError(
                 "`nuts` region processor set but no NUTS regions in `definitions`. "
                 "To fix, set `definitions.regions.nuts` to True."
             )
-        return v
+        return self
 
     def fetch_repos(self, target_folder: Path):
         for repo_name, repo in self.repositories.items():

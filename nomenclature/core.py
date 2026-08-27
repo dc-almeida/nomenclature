@@ -1,10 +1,14 @@
+import importlib.util
 import logging
+import sys
+from pathlib import Path
 
-import pyam
+from pyam import IamDataFrame
 from pydantic import validate_call
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import Processor, RegionProcessor
+from nomenclature.processor.country import CountryProcessor
 from nomenclature.processor.nuts import NutsProcessor
 
 logger = logging.getLogger(__name__)
@@ -12,11 +16,11 @@ logger = logging.getLogger(__name__)
 
 @validate_call(config={"arbitrary_types_allowed": True})
 def process(
-    df: pyam.IamDataFrame,
+    df: IamDataFrame,
     dsd: DataStructureDefinition,
     dimensions: list[str] | str | None = None,
     processor: Processor | list[Processor] | None = None,
-) -> pyam.IamDataFrame:
+) -> IamDataFrame:
     """Function for validation and region aggregation in one step
 
     This function is the recommended way of using the nomenclature package. It performs
@@ -29,6 +33,7 @@ def process(
             2. Model native regions can be renamed
             3. Aggregation from model native regions to "common regions"
         * NUTS aggregation (via :class:`NutsProcessor`), which aggregates NUTS3 -> NUTS2 -> NUTS1 -> Country -> EU27(+UK)
+        * Country-to-region aggregation (via :class:`CountryProcessor`), which aggregates countries based on the region codelist
     * Validation of consistency across the variable hierarchy
 
     Parameters
@@ -63,7 +68,7 @@ def process(
 
     # Auto-instantiate processors declared in nomenclature.yaml under 'processors'
     # Raise error if both explicit and config-based processors exist.
-    if getattr(dsd.config.processor, "region_processor", False):
+    if dsd.config.processor.region:
         if any(isinstance(p, RegionProcessor) for p in processor):
             raise ValueError(
                 "Config declares 'region-processor: true' but an explicit "
@@ -72,6 +77,17 @@ def process(
             )
         processor.append(
             RegionProcessor.from_directory(dsd.project_folder / "mappings", dsd)
+        )
+
+    if dsd.config.processor.country:
+        if any(isinstance(p, CountryProcessor) for p in processor):
+            raise ValueError(
+                "Config declares 'country-processor: true' but an explicit "
+                "CountryProcessor was provided. Please specify only one source of "
+                "CountryProcessor (either via config or explicitly)."
+            )
+        processor.append(
+            CountryProcessor.from_codelist(dsd=dsd, models=dsd.config.processor.country)
         )
 
     if dsd.config.processor.nuts:
@@ -113,3 +129,23 @@ def process(
         )
 
     return df
+
+
+def run_workflow(
+    df: IamDataFrame,
+    workflow_file: Path = (Path.cwd() / "workflow.py"),
+    workflow_function: str = "main",
+) -> IamDataFrame:
+
+    module_name = workflow_file.stem
+    spec = importlib.util.spec_from_file_location(module_name, workflow_file)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load workflow module from {workflow_file}")
+    workflow = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = workflow
+    spec.loader.exec_module(workflow)
+
+    if not hasattr(workflow, workflow_function):
+        raise ValueError(f"{workflow} does not have a function `{workflow_function}`")
+
+    return getattr(workflow, workflow_function)(df)

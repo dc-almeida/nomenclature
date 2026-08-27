@@ -3,7 +3,7 @@ import re
 from os import PathLike
 from pathlib import Path
 from textwrap import indent
-from typing import Any, IO, ClassVar
+from typing import IO, Any, ClassVar, Self
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,7 @@ from nomenclature.exceptions import (
     UnknownCodeError,
     UnknownRegionError,
     UnknownScenarioError,
+    UnknownVariableComponentError,
     UnknownVariableError,
     VariableRenameArgError,
     VariableRenameTargetError,
@@ -199,7 +200,7 @@ class CodeList(BaseModel):
         path: Path,
         config: NomenclatureConfig | None = None,
         file_glob_pattern: str = "**/*",
-    ) -> "CodeList":
+    ) -> Self:
         """Initialize a CodeList from a directory with codelist files
 
         Parameters
@@ -638,7 +639,7 @@ class CodeList(BaseModel):
                     pattern = re.compile(escape_regexp(filter_value) + "$")
                     return re.match(pattern, code_value) is not None
                 # If list, recursive
-                if isinstance(filter_value, list):
+                if isinstance(filter_value, (list, tuple, set)):
                     return any(
                         check_attribute_match(code_value, value)
                         for value in filter_value
@@ -768,6 +769,34 @@ class VariableCodeList(CodeList):
                     "missing_weights": "".join(
                         f"'{weight}' used for '{var}' in: {file}\n"
                         for var, weight, file in missing_weights
+                    )
+                },
+            )
+        return v
+
+    @field_validator("mapping")
+    @classmethod
+    def check_components_in_vars(cls, v):
+        """Check that all variables specified in 'components' (for check-aggregate
+        variables) are present in the codelist"""
+        missing = []
+        for var in v.values():
+            if not var.check_aggregate or var.components is None:
+                continue
+            components: list[str] = (
+                var.components
+                if isinstance(var.components, list)
+                else [c for group in var.components.values() for c in group]
+            )
+            missing.extend(
+                (var.name, comp, var.file) for comp in components if comp not in v
+            )
+        if missing:
+            raise UnknownVariableComponentError(
+                {
+                    "unknown_variable_component": "".join(
+                        f"'{comp}' used for '{var}' in: {file}\n"
+                        for var, comp, file in missing
                     )
                 },
             )

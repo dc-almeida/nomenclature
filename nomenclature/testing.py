@@ -152,8 +152,9 @@ def assert_valid_structure(
     if "variable" in dsd.dimensions:
         dsd.variable.data_validator
     _check_mappings(path, dsd, mappings)
-    _check_processor_directory(
-        path, dsd, RequiredDataValidator, "required_data", required_data
-    )
-    _check_processor_directory(path, dsd, DataValidator, "validate_data", validate_data)
-    _check_processor_directory(path, dsd, MetaValidator, "validate_meta", validate_meta)
+    for processor, name, folder in [
+        (RequiredDataValidator, "required_data", required_data),
+        (DataValidator, "validate_data", validate_data),
+        (MetaValidator, "validate_meta", validate_meta),
+    ]:
+        _check_processor_directory(path, dsd, processor, name, folder)

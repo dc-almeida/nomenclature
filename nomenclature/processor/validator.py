@@ -14,7 +14,6 @@ from pydantic import (
 from pyam import IamDataFrame
 from pyam.utils import adjust_log_level
 from toolkit.exceptions import NoTracebackException
-from nomenclature.codelist import CodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.processor import Processor
 from nomenclature.utils import get_relative_path
@@ -229,14 +228,6 @@ class Validator(Processor):
         cls, file: Path | str, output_path: Path | str | None = None
     ) -> "Validator":
         """Create a Validator instance from a file."""
-        pass
-
-    @classmethod
-    @abc.abstractmethod
-    def from_codelist(
-        cls, codelist: CodeList, output_path: Path | None = None
-    ) -> "Validator":
-        """Create a Validator from a CodeList"""
         pass
 
     @abc.abstractmethod

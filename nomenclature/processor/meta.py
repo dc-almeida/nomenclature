@@ -209,34 +209,6 @@ class MetaValidator(Validator):
 
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
 
-    @classmethod
-    def from_codelist(
-        cls, codelist: MetaCodeList, output_path: Path | None = None
-    ) -> "MetaValidator":
-        """Create a MetaValidator from a MetaCodeList
-
-        Parameters
-        ----------
-        codelist : MetaCodeList
-            The MetaCodeList to use for validation
-
-        Returns
-        -------
-        MetaValidator
-            A new MetaValidator instance with the given MetaCodeList
-        """
-        criteria_items = [
-            {
-                "meta": [meta.name],
-                "validation": [meta.validation_args],
-            }
-            for meta in codelist.values()
-            if meta.has_validation_args
-        ]
-        return cls(
-            criteria_items=criteria_items, file="definitions", output_path=output_path
-        )
-
     def apply(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
         """Apply meta indicator validation processing
 

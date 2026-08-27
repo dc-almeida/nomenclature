@@ -4,7 +4,6 @@ import pandas as pd
 from pyam import IamDataFrame
 from pyam.utils import IAMC_IDX
 from nomenclature.processor.validator import WarningEnum
-from nomenclature.codelist import MetaCodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.meta import MetaValidator
 from nomenclature.exceptions import (
@@ -15,20 +14,6 @@ from nomenclature.exceptions import (
 from conftest import TEST_DATA_DIR
 
 MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "meta_validator"
-
-
-def test_MetaValidator_from_codelist(simple_df):
-    """
-    Test MetaValidator can be created from a MetaCodeList and validation criteria
-    are set correctly (backwards-compatible with alias).
-    """
-    meta_codelist = MetaCodeList.from_directory(
-        "meta", MODULE_TEST_DATA_DIR / "definitions" / "meta"
-    )
-    meta_validator = MetaValidator.from_codelist(meta_codelist)
-    assert meta_validator.criteria_items[0].validation[0].value == [True, False]
-    assert meta_validator.criteria_items[1].validation[0].value == [1.0, 2.0, 3.0, 4.0]
-    assert meta_validator.criteria_items[2].validation[0].value == ["foo", "bar"]
 
 
 def test_MetaValidator_from_file():
@@ -58,10 +43,9 @@ def test_MetaValidator_validate_with_definition():
     """
     Test MetaValidator's criteria items against the MetaCodeList.
     """
-    meta_codelist = MetaCodeList.from_directory(
-        "meta", MODULE_TEST_DATA_DIR / "definitions" / "meta"
+    meta_validator = MetaValidator.from_file(
+        MODULE_TEST_DATA_DIR / "validate_meta" / "warning_multiple.yaml"
     )
-    meta_validator = MetaValidator.from_codelist(meta_codelist)
     dsd = DataStructureDefinition(MODULE_TEST_DATA_DIR / "definitions")
 
     assert meta_validator.validate_with_definition(dsd) is None

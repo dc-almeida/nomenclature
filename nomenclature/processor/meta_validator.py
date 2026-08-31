@@ -156,7 +156,7 @@ class MetaValidator(Validator):
         Raises
         ------
         ValueError
-            *If any of the values in the meta-indicator column are not
+            If any of the values in the meta-indicator column are not
             listed in model mapping.
         """
         not_allowed = [value for value in values if value not in allowed_values]
@@ -207,11 +207,13 @@ class MetaValidator(Validator):
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
 
     def apply(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
-        """Apply meta-indicator validation processing.
+        """Apply meta-indicator validation to IamDataFrame.
+
+        Logs warning/error messages for each criterion that is not met.
 
         Parameters
         ----------
-        df (pyam.IamDataFrame)
+        df : pyam.IamDataFrame
             Input data whose meta-indicators will be validated
 
         Returns
@@ -223,7 +225,7 @@ class MetaValidator(Validator):
         Raises
         ------
         ValueError
-            *If a meta-indicator in the 'df' is not listed in the .yaml
+            If a meta-indicator in the 'df' is not listed in the .yaml
             definition file
         """
 
@@ -283,7 +285,7 @@ def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
     Raises
     ------
     ValueError
-        *If a meta-indicator in the 'df' is not listed in the .yaml
+        If a meta-indicator in the 'df' is not listed in the .yaml
         definition file
     """
     value = kwargs.get("value")

@@ -7,6 +7,7 @@ import pandas as pd
 from toolkit.exceptions import NoTracebackException
 import yaml
 from pyam import IamDataFrame
+from pyam.utils import adjust_log_level
 
 from nomenclature.codelist import VariableCodeList
 from nomenclature.definition import DataStructureDefinition
@@ -192,3 +193,43 @@ class DataValidator(Validator):
                 f"Error in DataValidator (file {get_relative_path(self.file)})",
                 errors,
             )
+
+    def apply(self, df: IamDataFrame) -> IamDataFrame:
+        """Apply data validation to IamDataFrame.
+
+        Logs warning/error messages for each criterion that is not met.
+
+        Parameters
+        ----------
+        df : pyam.IamDataFrame
+            Data in IAMC format to be validated
+
+        Returns
+        -------
+        pyam.IamDataFrame
+
+        Raises
+        ------
+        ValueError
+            If any criterion has a warning level of ``error``
+        """
+
+        error_list: list[bool] = []
+        fail_list: list[str] = []
+        output_list: list[pd.DataFrame] = []
+
+        with adjust_log_level():
+            for item in self.criteria_items:
+                error, fail_list, output_list = item.apply(df, fail_list, output_list)
+                error_list.append(error)
+            if self.output_path:
+                pd.concat(output_list).to_excel(self.output_path, index=False)
+            fail_msg = f"(file {get_relative_path(self.file)}):\n"
+            if any(error_list):
+                raise self.exception_cls(fail_list, self.file)
+            if fail_list:
+                fail_msg = (
+                    "Data validation with warning(s) " + fail_msg + "\n".join(fail_list)
+                )
+                logger.warning(fail_msg)
+        return df

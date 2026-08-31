@@ -187,7 +187,8 @@ class RequiredDataValidator(Processor):
 
         Raises
         ------
-            :exc:`ValueError` if any required dimension is not found in the data
+        ValueError
+            If any required dimension is not found in the data
         """
         if self.model is not None:
             models_to_check = [model for model in df.model if model in self.model]

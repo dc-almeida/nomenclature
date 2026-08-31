@@ -136,37 +136,6 @@ class MetaValidator(Validator):
     output_path: Path | None = None
     exception_cls: type[NoTracebackException] = MetaValidationError
 
-    def _values_allowed(self, values, allowed_values, meta_indicator) -> bool:
-        """Checks if the values in a meta-indicator column are listed in model mapping.
-
-        Parameters
-        ----------
-        values :
-            List of values in the meta-indicator column of the df: IamDataFrame.
-        allowed_values :
-            List of allowed values for the meta-indicator column
-        meta_indicator :
-            The name of the meta-indicator/column whose values are being checked.
-
-        Returns
-        -------
-        True : boolean
-            If all column elements are listed in model mapping
-
-        Raises
-        ------
-        ValueError
-            If any of the values in the meta-indicator column are not
-            listed in model mapping.
-        """
-        not_allowed = [value for value in values if value not in allowed_values]
-        if not_allowed:
-            raise ValueError(
-                f"Invalid value for meta-indicator '{meta_indicator}': {repr_list(not_allowed)}\n"
-                f"Allowed values: {repr_list(allowed_values)}"
-            )
-        return True
-
     @classmethod
     def from_file(
         cls, file: Path | str, output_path: Path | str | None = None

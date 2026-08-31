@@ -21,6 +21,6 @@ configuration for the **nomenclature** package.
 Documentation
 -------------
 
-.. typer:: nomenclature.app
+.. typer:: nomenclature.cli.app
    :prog: nomenclature
    :preferred: html

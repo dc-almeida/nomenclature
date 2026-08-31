@@ -17,22 +17,15 @@ MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "meta_validator"
 
 
 def test_MetaValidator_from_file():
-    """
-    Test MetaValidator can be created from a YAML file and validation criteria
-    are set correctly.
-    """
+    """Check that a MetaValidator can be created from a yaml file"""
     meta_validator = MetaValidator.from_file(
         MODULE_TEST_DATA_DIR / "validate_meta" / "warning_multiple.yaml"
     )
-    assert meta_validator.criteria_items[0].validation[0].upper_bound == 1.0
-    assert (
-        meta_validator.criteria_items[0].validation[0].warning_level == WarningEnum.high
-    )
-    assert meta_validator.criteria_items[0].validation[1].upper_bound == 0.0
-    assert (
-        meta_validator.criteria_items[0].validation[1].warning_level
-        == WarningEnum.medium
-    )
+    criteria_item_0 = meta_validator.criteria_items[0]
+    assert criteria_item_0.validation[0].upper_bound == 1.0
+    assert criteria_item_0.validation[0].warning_level == WarningEnum.high
+    assert criteria_item_0.validation[1].upper_bound == 0.0
+    assert criteria_item_0.validation[1].warning_level == WarningEnum.medium
     assert meta_validator.criteria_items[1].validation[0].value == ["foo"]
     assert (
         meta_validator.criteria_items[1].validation[0].warning_level == WarningEnum.low

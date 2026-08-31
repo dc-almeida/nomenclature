@@ -129,7 +129,7 @@ class MetaValidationItem(ValidationItem, MetaFilter):
 
 
 class MetaValidator(Validator):
-    """Meta indicator validation and processing class"""
+    """Meta-indicator validation and processing class"""
 
     criteria_items: list[MetaValidationItem]
     file: Path | str
@@ -137,7 +137,7 @@ class MetaValidator(Validator):
     exception_cls: type[NoTracebackException] = MetaValidationError
 
     def _values_allowed(self, values, allowed_values, meta_indicator) -> bool:
-        """Checks if the values within a meta indicator column are
+        """Checks if the values in a meta indicator column are
         listed in model mapping
 
         Parameters
@@ -219,7 +219,7 @@ class MetaValidator(Validator):
 
         Returns
         -------
-        df (pyam.IamDataFrame)
+        pyam.IamDataFrame
             If all meta indicators and their values are listed in the
             model mapping, the same df is returned.
 
@@ -269,7 +269,7 @@ def repr_list(x):
 
 
 def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
-    """Validate meta indicator values in IamDataFrame.
+    """Validate meta indicator values in IamDataFrame
 
     Parameters
     ----------

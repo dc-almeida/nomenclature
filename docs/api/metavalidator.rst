@@ -50,7 +50,7 @@ Standard usage
 
   # ...setting directory/file paths and loading dataset
 
-  MetaValidator.from_file(yaml_file_containing_meta_validation_criteria).apply(df)
+  MetaValidator.from_file("path/to/file.yaml").apply(df)
 
 .. autoclass:: MetaValidator
    :members: from_file, from_codelist, apply, validate_with_definition

@@ -41,7 +41,7 @@ class DataValidationItem(ValidationItem, IamcDataFilter):
         error = False
         per_item_df = df.filter(**self.filter_args)
 
-        # If name is given, set a meta indicator for the item being processed
+        # If name is given, set a meta-indicator for the item being processed
         if self.name is not None:
             meta_index = per_item_df.index.copy()
             df.set_meta(name=self.name, meta="ok", index=meta_index)
@@ -55,7 +55,7 @@ class DataValidationItem(ValidationItem, IamcDataFilter):
                     )
                 )
 
-                # Mark failing scenarios with a meta indicator and warning level
+                # Mark failing scenarios with a meta-indicator and warning level
                 failed_index = failed_validation.set_index(
                     ["model", "scenario"]
                 ).index.drop_duplicates()
@@ -67,7 +67,7 @@ class DataValidationItem(ValidationItem, IamcDataFilter):
                         index=meta_index.intersection(failed_index),
                     )
                     # Remove failed scenarios from the meta index to avoid
-                    # lower warnings overriding higher warnings in meta indicators
+                    # lower warnings overriding higher warnings in meta-indicators
                     meta_index = meta_index.difference(failed_index)
 
                 failed_validation["warning_level"] = criterion.warning_level.name

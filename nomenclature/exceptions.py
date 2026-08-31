@@ -190,7 +190,7 @@ class MetaValidationError(NoTracebackException):
     ) -> None:
         failed_criteria_info = "\n".join(fail_list)
         message = (
-            f"Meta indicator validation failed with error(s) (file: {get_relative_path(file)}):\n"
+            f"Meta-indicator validation failed with error(s) (file: {get_relative_path(file)}):\n"
             f"{failed_criteria_info}"
         )
         super().__init__(message)

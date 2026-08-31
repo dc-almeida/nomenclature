@@ -53,7 +53,7 @@ class MetaFilter(BaseModel):
         if invalid := codelist.validate_items(getattr(self, "meta")):
             errors.append(
                 NoTracebackException(
-                    "The following meta indicators are not defined in the "
+                    "The following meta-indicators are not defined in the "
                     "DataStructureDefinition:\n   "
                     + ", ".join(f"'{item}'" for item in invalid)
                 )
@@ -80,7 +80,7 @@ class MetaValidationValue(ValidationValue):
 
 
 class MetaValidationItem(ValidationItem, MetaFilter):
-    """Validation item for meta indicator validation"""
+    """Validation item for meta-indicator validation"""
 
     validation: list[MetaValidationValue | ValidationBounds | ValidationRange]
 
@@ -89,7 +89,7 @@ class MetaValidationItem(ValidationItem, MetaFilter):
         error = False
         per_item_df = df.meta.filter(self.meta, axis="columns")
 
-        # If name is given, set a meta indicator for the item being processed
+        # If name is given, set a meta-indicator for the item being processed
         if self.name is not None:
             meta_index: pd.MultiIndex = per_item_df.index
             df.set_meta(name=self.name, meta="ok", index=meta_index)
@@ -102,7 +102,7 @@ class MetaValidationItem(ValidationItem, MetaFilter):
                     ~per_item_df.index.isin(failed_validation.index)
                 ]
 
-                # Mark failing scenarios with a meta indicator and warning level
+                # Mark failing scenarios with a meta-indicator and warning level
                 failed_index: pd.MultiIndex = failed_validation.index.drop_duplicates()
 
                 if self.name is not None:
@@ -110,7 +110,7 @@ class MetaValidationItem(ValidationItem, MetaFilter):
                         criterion.warning_level.name
                     )
                     # Remove failed scenarios from the meta index to avoid
-                    # lower warnings overriding higher warnings in meta indicators
+                    # lower warnings overriding higher warnings in meta-indicators
                     meta_index = meta_index.difference(failed_index)
 
                 failed_validation["warning_level"] = criterion.warning_level.name
@@ -137,17 +137,16 @@ class MetaValidator(Validator):
     exception_cls: type[NoTracebackException] = MetaValidationError
 
     def _values_allowed(self, values, allowed_values, meta_indicator) -> bool:
-        """Checks if the values in a meta indicator column are
-        listed in model mapping
+        """Checks if the values in a meta-indicator column are listed in model mapping
 
         Parameters
         ----------
         values :
-            List of values in the meta_indicator column of the df: IamDataFrame.
+            List of values in the meta-indicator column of the df: IamDataFrame.
         allowed_values :
-            List of allowed values for the meta_indicator column
+            List of allowed values for the meta-indicator column
         meta_indicator :
-            The name of the meta_indicator/column whose values are being checked.
+            The name of the meta-indicator/column whose values are being checked.
 
         Returns
         -------
@@ -157,7 +156,7 @@ class MetaValidator(Validator):
         Raises
         ------
         ValueError
-            *If any of the values in the meta indicator column are not
+            *If any of the values in the meta-indicator column are not
             listed in model mapping
 
 
@@ -165,7 +164,7 @@ class MetaValidator(Validator):
         not_allowed = [value for value in values if value not in allowed_values]
         if not_allowed:
             raise ValueError(
-                f"Invalid value for meta indicator '{meta_indicator}': {repr_list(not_allowed)}\n"
+                f"Invalid value for meta-indicator '{meta_indicator}': {repr_list(not_allowed)}\n"
                 f"Allowed values: {repr_list(allowed_values)}"
             )
         return True
@@ -210,23 +209,23 @@ class MetaValidator(Validator):
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
 
     def apply(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
-        """Apply meta indicator validation processing
+        """Apply meta-indicator validation processing
 
         Parameters
         ----------
         df (pyam.IamDataFrame)
-            Input data whose meta indicators will be validated
+            Input data whose meta-indicators will be validated
 
         Returns
         -------
         pyam.IamDataFrame
-            If all meta indicators and their values are listed in the
+            If all meta-indicators and their values are listed in the
             model mapping, the same df is returned.
 
         Raises
         ------
         ValueError
-            *If a meta indicator in the 'df' is not listed in the .yaml
+            *If a meta-indicator in the 'df' is not listed in the .yaml
             definition file
         """
 
@@ -269,12 +268,12 @@ def repr_list(x):
 
 
 def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
-    """Validate meta indicator values in IamDataFrame
+    """Validate meta-indicator values in IamDataFrame
 
     Parameters
     ----------
     df : IamDataFrame
-        Input data whose meta indicators will be validated
+        Input data whose meta-indicators will be validated
     **kwargs : dict
         Validation criteria
 
@@ -286,7 +285,7 @@ def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
     Raises
     ------
     ValueError
-        *If a meta indicator in the 'df' is not listed in the .yaml
+        *If a meta-indicator in the 'df' is not listed in the .yaml
         definition file
     """
     value = kwargs.get("value")
@@ -312,6 +311,6 @@ def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
     _df = df.loc[sorted(failed_index)]
 
     if not _df.empty:
-        msg = "{} of {} meta indicators do not satisfy the criteria"
+        msg = "{} of {} meta-indicators do not satisfy the criteria"
         logger.warning(msg.format(len(_df), len(df)))
         return _df

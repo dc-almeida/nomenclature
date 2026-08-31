@@ -26,10 +26,10 @@ def test_MetaValidator_from_file():
     assert criteria_item_0.validation[0].warning_level == WarningEnum.high
     assert criteria_item_0.validation[1].upper_bound == 0.0
     assert criteria_item_0.validation[1].warning_level == WarningEnum.medium
-    assert meta_validator.criteria_items[1].validation[0].value == ["foo"]
-    assert (
-        meta_validator.criteria_items[1].validation[0].warning_level == WarningEnum.low
-    )
+
+    criteria_item_1 = meta_validator.criteria_items[1]
+    assert criteria_item_1.validation[0].value == ["foo"]
+    assert criteria_item_1.validation[0].warning_level == WarningEnum.low
 
 
 def test_MetaValidator_validate_with_definition():
@@ -49,7 +49,7 @@ def test_MetaValidator_validate_with_definition_raises():
     Test MetaValidator's DSD validation when criteria uses indicators not in definition.
     """
     error_msg = (
-        "The following meta indicators are not defined "
+        "The following meta-indicators are not defined "
         "in the DataStructureDefinition:\n   'not defined'"
     )
 
@@ -81,7 +81,7 @@ def test_MetaValidator_apply_warning(simple_df, caplog):
 
 def test_MetaValidator_apply_multiple_warning_levels(simple_df, caplog):
     """
-    Test MetaValidator can apply multiple warning levels to meta indicators.
+    Test MetaValidator can apply multiple warning levels to meta-indicators.
     """
     warning_msg = """
   Criteria: meta: ['number'], upper_bound: 1.0
@@ -172,9 +172,7 @@ def test_MetaValidator_apply_empty_df(caplog):
 
 
 def test_MetaValidator_apply_ignore_missing_column(simple_df, caplog):
-    """
-    Test MetaValidator on a data frame with a missing meta indicator .
-    """
+    """Test MetaValidator on a data frame with a missing meta-indicator."""
     warning_msg = """  Criteria: meta: ['number', 'number_too'], upper_bound: 1.0
                     number warning_level
   model   scenario                      

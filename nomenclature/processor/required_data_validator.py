@@ -144,7 +144,7 @@ class RequiredData(BaseModel):
 
 
 class RequiredDataValidator(Processor):
-    """Processor for validating required dimensions in IAMC datapoints"""
+    """Processor for validating required dimensions in IAMC datapoints."""
 
     description: str | None = None
     model: list[str] | None = None

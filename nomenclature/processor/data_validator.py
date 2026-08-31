@@ -86,7 +86,7 @@ class DataValidationItem(ValidationItem, IamcDataFilter):
 
 
 class DataValidator(Validator):
-    """Processor for validating IAMC datapoints"""
+    """Processor for validating IAMC datapoints."""
 
     criteria_items: list[DataValidationItem]
     file: Path | str

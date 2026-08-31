@@ -44,7 +44,7 @@ class MetaFilter(BaseModel):
         return self.model_dump(exclude_none=True, exclude_unset=True)
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        """Check criteria items against the DataStructureDefinition"""
+        """Check criteria items against the DataStructureDefinition."""
         codelist: MetaCodeList | None = getattr(dsd, "meta", None)
         # No validation if codelist is not defined or filter-item is None
         errors: list[NoTracebackException] = []
@@ -80,7 +80,7 @@ class MetaValidationValue(ValidationValue):
 
 
 class MetaValidationItem(ValidationItem, MetaFilter):
-    """Validation item for meta-indicator validation"""
+    """Validation item for meta-indicator validation."""
 
     validation: list[MetaValidationValue | ValidationBounds | ValidationRange]
 
@@ -129,7 +129,7 @@ class MetaValidationItem(ValidationItem, MetaFilter):
 
 
 class MetaValidator(Validator):
-    """Meta-indicator validation and processing class"""
+    """Meta-indicator validation and processing class."""
 
     criteria_items: list[MetaValidationItem]
     file: Path | str
@@ -137,7 +137,7 @@ class MetaValidator(Validator):
     exception_cls: type[NoTracebackException] = MetaValidationError
 
     def _values_allowed(self, values, allowed_values, meta_indicator) -> bool:
-        """Checks if the values in a meta-indicator column are listed in model mapping
+        """Checks if the values in a meta-indicator column are listed in model mapping.
 
         Parameters
         ----------
@@ -157,9 +157,7 @@ class MetaValidator(Validator):
         ------
         ValueError
             *If any of the values in the meta-indicator column are not
-            listed in model mapping
-
-
+            listed in model mapping.
         """
         not_allowed = [value for value in values if value not in allowed_values]
         if not_allowed:
@@ -209,7 +207,7 @@ class MetaValidator(Validator):
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
 
     def apply(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
-        """Apply meta-indicator validation processing
+        """Apply meta-indicator validation processing.
 
         Parameters
         ----------
@@ -268,7 +266,7 @@ def repr_list(x):
 
 
 def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
-    """Validate meta-indicator values in IamDataFrame
+    """Validate meta-indicator values in IamDataFrame.
 
     Parameters
     ----------

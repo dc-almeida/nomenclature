@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 class WarningEnum(IntEnum):
+    """Enum for warning levels."""
+
     error = 50
     high = 40
     medium = 30
@@ -29,7 +31,7 @@ class WarningEnum(IntEnum):
 
 
 class ValidationCriteria(abc.ABC, BaseModel):
-    """Base class for validation criteria (value, bounds, range)"""
+    """Base class for validation criteria (value, bounds, range)."""
 
     warning_level: WarningEnum = WarningEnum.error
 
@@ -181,7 +183,7 @@ class ValidationRange(ValidationCriteria):
 
 
 class ValidationItem(BaseModel, abc.ABC):
-    """Base class for validation items (filter + criteria)"""
+    """Base class for validation items (filter + criteria)."""
 
     name: str | None = None
     validation: list[ValidationValue | ValidationBounds | ValidationRange]
@@ -215,7 +217,7 @@ class ValidationItem(BaseModel, abc.ABC):
 
 
 class Validator(Processor):
-    """Abstract validation and processing class"""
+    """Abstract validation and processing class."""
 
     criteria_items: list[ValidationItem]
     file: Path | str

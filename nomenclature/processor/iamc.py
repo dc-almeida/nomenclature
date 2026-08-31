@@ -27,7 +27,7 @@ class IamcDataFilter(BaseModel):
         return self.model_dump(exclude_none=True, exclude_unset=True)
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        """Check dimensions to validate against the DataStructureDefinition"""
+        """Check dimensions to validate against the DataStructureDefinition."""
         errors: list[NoTracebackException] = []
         # Check for filter-items that are not defined in the codelists
         for dimension in IAMC_IDX:

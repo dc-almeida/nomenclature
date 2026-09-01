@@ -5,7 +5,7 @@
 **MetaValidator**
 =================
 
-**Meta validation** checks if meta-indicators follow allowed values and ranges.
+**Meta-indicator validation** checks if meta-indicators follow allowed values and ranges.
 
 Consider the example below:
 
@@ -22,10 +22,9 @@ Consider the example below:
     values: [Project Name 1, Project Name 2]
 
 
-Each criteria item contains **meta-indicator filter arguments** and **validation arguments**.
+Each criteria item contains the **name of the meta column to be validated** and **validation arguments**.  
 
-The meta-indicator filter argument ``meta`` (also allowed as ``meta_columns_to_validate``)
-refers to the column(s) in the meta-indicator table that will undergo validation.
+The name of the column is specified in ``meta`` (also allowed as ``meta_columns_to_validate``).  
 For the first criteria item, validation will check the values of column
 *"Emissions Diagnostics|Cumulative CCS [2020-2100, Gt CO2]"*.
 For the second criteria item, validation will check column *"Project"*.

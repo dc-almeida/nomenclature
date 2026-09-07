@@ -23,7 +23,7 @@ from nomenclature.exceptions import (
     WrongUnitError,
 )
 from nomenclature.processor import Processor
-from nomenclature.utils import get_relative_path
+from nomenclature.utils import get_relative_path, single_input_to_list
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +34,8 @@ class RequiredMeasurand(BaseModel):
 
     @field_validator("unit", mode="before")
     @classmethod
-    def single_input_to_list(cls, v):
-        return v if isinstance(v, list) else [v]
+    def cast_single_input_to_list(cls, v):
+        return single_input_to_list(v)
 
 
 def cast_to_RequiredMeasurand(v) -> RequiredMeasurand:
@@ -59,8 +59,8 @@ class RequiredData(BaseModel):
 
     @field_validator("measurand", "region", "year", "variable", mode="before")
     @classmethod
-    def single_input_to_list(cls, v):
-        return v if isinstance(v, list) else [v]
+    def cast_single_input_to_list(cls, v):
+        return single_input_to_list(v)
 
     @model_validator(mode="before")
     @classmethod

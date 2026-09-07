@@ -60,7 +60,7 @@ class ValidationCriteria(abc.ABC, BaseModel):
         pass
 
     def __str__(self):
-        return ", ".join([f"{key}: {value}" for key, value in self.criteria.items()])
+        return str(self.criteria)
 
 
 class ValidationValue(ValidationCriteria):
@@ -95,7 +95,7 @@ class ValidationValue(ValidationCriteria):
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["warning_level", "value", "rtol", "atol"],
+            include=["upper_bound", "lower_bound"],
         )
 
     @property
@@ -103,7 +103,7 @@ class ValidationValue(ValidationCriteria):
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["warning_level", "lower_bound", "upper_bound"],
+            include=["value", "atol", "rtol"],
         )
 
 
@@ -175,7 +175,7 @@ class ValidationRange(ValidationCriteria):
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["warning_level", "lower_bound", "upper_bound"],
+            include=["range"],
         )
 
 
@@ -210,7 +210,7 @@ class ValidationItem(BaseModel, abc.ABC):
         pass
 
     def __str__(self):
-        return ", ".join([f"{key}: {value}" for key, value in self.filter_args.items()])
+        return str(self.filter_args)
 
 
 class Validator(Processor):

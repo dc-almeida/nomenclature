@@ -50,7 +50,7 @@ def test_MetaValidator_validate_with_definition_raises():
     """
     error_msg = (
         "The following meta-indicators are not defined "
-        "in the DataStructureDefinition:\n   'not defined'"
+        "in the MetaCodeList:\n   'not defined'"
     )
 
     meta_validator = MetaValidator.from_file(
@@ -58,9 +58,9 @@ def test_MetaValidator_validate_with_definition_raises():
     )
     dsd = DataStructureDefinition(MODULE_TEST_DATA_DIR / "definitions")
 
-    with pytest.RaisesGroup(NoTracebackException) as excinfo:
+    with pytest.raises(NoTracebackException) as excinfo:
         meta_validator.validate_with_definition(dsd)
-    assert excinfo.group_contains(NoTracebackException, match=error_msg)
+    assert excinfo.match(error_msg)
 
 
 def test_MetaValidator_apply_warning(simple_df, caplog):

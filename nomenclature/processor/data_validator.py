@@ -224,12 +224,13 @@ class DataValidator(Validator):
                 error_list.append(error)
             if self.output_path:
                 pd.concat(output_list).to_excel(self.output_path, index=False)
-            fail_msg = f"(file {get_relative_path(self.file)}):\n"
             if any(error_list):
                 raise self.exception_cls(fail_list, self.file)
             if fail_list:
                 fail_msg = (
-                    "Data validation with warning(s) " + fail_msg + "\n".join(fail_list)
+                    "Data validation with warning(s) "
+                    + f"(file {get_relative_path(self.file)}):\n"
+                    + "\n".join(fail_list)
                 )
                 logger.warning(fail_msg)
         return df

@@ -5,6 +5,7 @@ from toolkit.exceptions import NoTracebackException
 from nomenclature.codelist import CodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.exceptions import NoTracebackExceptionGroup
+from nomenclature.utils import single_input_to_list
 
 
 class IamcDataFilter(BaseModel):
@@ -19,8 +20,8 @@ class IamcDataFilter(BaseModel):
 
     @field_validator(*IAMC_IDX + ["year"], mode="before")
     @classmethod
-    def single_input_to_list(cls, v):
-        return v if isinstance(v, list) else [v]
+    def cast_single_input_to_list(cls, v):
+        return single_input_to_list(v)
 
     @property
     def criteria(self):

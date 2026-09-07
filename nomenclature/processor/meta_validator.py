@@ -1,6 +1,5 @@
 import logging
 import textwrap
-from typing import Any
 import pandas as pd
 import pyam
 import yaml
@@ -21,7 +20,7 @@ from nomenclature.processor.validator import (
     ValidationItem,
     WarningEnum,
 )
-from nomenclature.utils import get_relative_path
+from nomenclature.utils import get_relative_path, single_input_to_list
 from toolkit.exceptions import NoTracebackException, NoTracebackExceptionGroup
 
 logger = logging.getLogger(__name__)
@@ -36,8 +35,8 @@ class MetaFilter(BaseModel):
 
     @field_validator("meta", mode="before")
     @classmethod
-    def single_input_to_list(cls, v):
-        return v if isinstance(v, list) else [v]
+    def cast_single_input_to_list(cls, v):
+        return single_input_to_list(v)
 
     @property
     def criteria(self):
@@ -47,25 +46,17 @@ class MetaFilter(BaseModel):
         """Check criteria items against the DataStructureDefinition."""
         codelist: MetaCodeList | None = getattr(dsd, "meta", None)
         # No validation if codelist is not defined or filter-item is None
-        errors: list[NoTracebackException] = []
         if codelist is None:
             return
         if invalid := codelist.validate_items(getattr(self, "meta")):
-            errors.append(
-                NoTracebackException(
-                    "The following meta-indicators are not defined in the "
-                    "DataStructureDefinition:\n   "
-                    + ", ".join(f"'{item}'" for item in invalid)
-                )
-            )
-            raise NoTracebackExceptionGroup(
-                f"Errors in {self.__class__.__name__}", errors
+            raise NoTracebackException(
+                "The following meta-indicators are not defined in the "
+                "MetaCodeList:\n   " + ", ".join(f"'{item}'" for item in invalid)
             )
 
 
 class MetaValidationValue(ValidationValue):
-    value: float | list[Any] = Field(..., alias="values")
-
+    value: float | str | list[float | str] = Field(..., alias="values")
     model_config = ConfigDict(
         validate_by_alias=True, validate_by_name=True, extra="forbid"
     )
@@ -95,7 +86,9 @@ class MetaValidationItem(ValidationItem, MetaFilter):
             df.set_meta(name=self.name, meta="ok", index=meta_index)
 
         for criterion in self.validation:
-            failed_validation = _validate_meta(per_item_df, **criterion.validation_args)
+            failed_validation = self._validate_meta(
+                per_item_df, **criterion.validation_args
+            )
             if failed_validation is not None:
                 # Create a new meta DataFrame with failed validation rows removed
                 per_item_df = per_item_df.loc[
@@ -127,13 +120,61 @@ class MetaValidationItem(ValidationItem, MetaFilter):
                 )
         return error, fail_list, output_list
 
+    @staticmethod
+    def _validate_meta(
+        df: pd.DataFrame,
+        value: float | str | list[float | str] | None = None,
+        upper_bound: float | None = None,
+        lower_bound: float | None = None,
+    ) -> pd.DataFrame | None:
+        """Validate meta-indicator values in IamDataFrame.
+
+        Parameters
+        ----------
+        df : IamDataFrame
+            Input data whose meta-indicators will be validated
+        value : float | str | list[float | str], optional
+            The value(s) to validate against
+        upper_bound : float, optional
+            The upper bound for the validation
+        lower_bound : float, optional
+            The lower bound for the validation
+
+        Returns
+        -------
+        pd.DataFrame | None
+            A DataFrame of failing scenarios if any, otherwise None
+        """
+        if df.empty:
+            column_name = "', '".join(df.columns)
+            logger.warning(
+                f"Columns '{column_name}' do not exist in `meta`, skipping validation."
+            )
+            return
+        _df = df.copy()
+
+        failed_index = set()
+        if value is not None:
+            failed_index.update(_df[~_df.isin(value)].dropna(how="all").index)
+        if upper_bound is not None:
+            failed_index.update(_df[_df > upper_bound].dropna(how="all").index)
+        if lower_bound is not None:
+            failed_index.update(_df[_df < lower_bound].dropna(how="all").index)
+        if not failed_index:
+            return
+        _df = df.loc[sorted(failed_index)]
+
+        if not _df.empty:
+            msg = "{} of {} meta-indicators do not satisfy the criteria"
+            logger.warning(msg.format(len(_df), len(df)))
+            return _df
+        return None
+
 
 class MetaValidator(Validator):
     """Meta-indicator validation and processing class."""
 
     criteria_items: list[MetaValidationItem]
-    file: Path | str
-    output_path: Path | None = None
     exception_cls: type[NoTracebackException] = MetaValidationError
 
     @classmethod
@@ -193,27 +234,27 @@ class MetaValidator(Validator):
 
         Raises
         ------
-        ValueError
-            If a meta-indicator in the 'df' is not listed in the .yaml
-            definition file
+        MetaValidationError
+            If validation fails because meta-indicators are missing and/or values are wrong
         """
 
         error_list: list[bool] = []
         fail_list: list[str] = []
         output_list: list[pd.DataFrame] = []
 
-        with adjust_log_level():
+        with adjust_log_level(logger="pyam", level="ERROR"):
             for item in self.criteria_items:
                 error, fail_list, output_list = item.apply(df, fail_list, output_list)
                 error_list.append(error)
             if self.output_path:
                 pd.concat(output_list).to_excel(self.output_path, index=False)
-            fail_msg = f"(file {get_relative_path(self.file)}):\n"
             if any(error_list):
                 raise MetaValidationError(fail_list, self.file)
             if fail_list:
                 fail_msg = (
-                    "Meta validation with warning(s) " + fail_msg + "\n".join(fail_list)
+                    "Meta-indicator validation with warning(s) "
+                    + f"(file {get_relative_path(self.file)}):\n"
+                    + "\n".join(fail_list)
                 )
                 logger.warning(fail_msg)
         return df
@@ -234,52 +275,3 @@ class MetaValidator(Validator):
 
 def repr_list(x):
     return "'" + "', '".join(map(str, x)) + "'"
-
-
-def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
-    """Validate meta-indicator values in IamDataFrame.
-
-    Parameters
-    ----------
-    df : IamDataFrame
-        Input data whose meta-indicators will be validated
-    **kwargs : dict
-        Validation criteria
-
-    Returns
-    -------
-    pd.DataFrame | None
-        A DataFrame of failing scenarios if any, otherwise None
-
-    Raises
-    ------
-    ValueError
-        If a meta-indicator in the 'df' is not listed in the .yaml
-        definition file
-    """
-    value = kwargs.get("value")
-    upper_bound = kwargs.get("upper_bound")
-    lower_bound = kwargs.get("lower_bound")
-    if df.empty:
-        column_name = "', '".join(df.columns)
-        logger.warning(
-            f"Columns '{column_name}' do not exist in `meta`, skipping validation."
-        )
-        return
-    _df = df.copy()
-
-    failed_index = set()
-    if value is not None:
-        failed_index.update(_df[~_df.isin(value)].dropna(how="all").index)
-    if upper_bound is not None:
-        failed_index.update(_df[_df > upper_bound].dropna(how="all").index)
-    if lower_bound is not None:
-        failed_index.update(_df[_df < lower_bound].dropna(how="all").index)
-    if not failed_index:
-        return
-    _df = df.loc[sorted(failed_index)]
-
-    if not _df.empty:
-        msg = "{} of {} meta-indicators do not satisfy the criteria"
-        logger.warning(msg.format(len(_df), len(df)))
-        return _df

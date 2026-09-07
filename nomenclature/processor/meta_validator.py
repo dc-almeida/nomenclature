@@ -198,20 +198,15 @@ class MetaValidator(Validator):
             content = yaml.safe_load(f)
         criteria_items = []
         for item in content:
-            # Simple case where filter and criteria args are all given at top level
             if "validation" not in item:
-                item["validation"] = [dict()]
-
-            # If some criteria args are given at top-level, add to "validation" list
-            criteria = [
-                criterion
-                for criterion in item
-                if criterion not in ["name", "meta", "validation"]
-            ]
-            for criterion in criteria:
-                value = item.pop(criterion)
-                for criteria_item in item["validation"]:
-                    criteria_item[criterion] = value
+                raise ValueError(
+                    "Each meta-indicator validation item must define a 'validation' field."
+                )
+            if disallowed := set(item) - {"name", "meta", "validation"}:
+                raise ValueError(
+                    "Meta-indicator validation criteria must be defined inside 'validation': "
+                    + ", ".join(sorted(disallowed))
+                )
             criteria_items.append(item)
 
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore

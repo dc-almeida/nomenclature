@@ -224,8 +224,8 @@ class MetaValidator(Validator):
         Returns
         -------
         pyam.IamDataFrame
-            If all meta-indicators and their values are listed in the
-            model mapping, the same df is returned.
+            A DataFrame with new meta columns with validation results
+            (as specified in the validation criteria).
 
         Raises
         ------

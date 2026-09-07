@@ -56,7 +56,7 @@ class ValidationCriteria(abc.ABC, BaseModel):
     @property
     @abc.abstractmethod
     def criteria(self):
-        """Attributes used for validation (as specified in the file)."""
+        """Validation criteria as read from the YAML file."""
         pass
 
     def __str__(self):
@@ -64,7 +64,7 @@ class ValidationCriteria(abc.ABC, BaseModel):
 
 
 class ValidationValue(ValidationCriteria):
-    value: float
+    value: float | list = Field(..., alias="values")
     rtol: float = 0.0
     atol: float = 0.0
 
@@ -135,7 +135,9 @@ class ValidationBounds(ValidationCriteria):
     @property
     def criteria(self):
         return self.model_dump(
-            exclude_none=True, exclude_unset=True, exclude=["warning_level"]
+            exclude_none=True,
+            exclude_unset=True,
+            include=["upper_bound", "lower_bound"],
         )
 
 
@@ -167,7 +169,7 @@ class ValidationRange(ValidationCriteria):
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["warning_level", "range"],
+            include=["upper_bound", "lower_bound"],
         )
 
     @property

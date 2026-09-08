@@ -201,3 +201,24 @@ def test_MetaValidator_apply_error(simple_df):
     with pytest.raises(MetaValidationError) as excinfo:
         meta_validator.apply(simple_df)
     assert error_msg in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "yaml_file, expected_count_message",
+    [
+        ("warning_high.yaml", "1 of 1 criteria failed validation (1 of 2 rows)."),
+        ("warning_multiple.yaml", "2 of 2 criteria failed validation (2 of 2 rows)."),
+    ],
+)
+def test_MetaValidator_apply_warning_count_message(
+    simple_df, caplog, yaml_file, expected_count_message
+):
+    """
+    Test MetaValidator logs the correct count of failed scenarios.
+    Verifies count of failed validation criteria in the warning message is accurate.
+    """
+    meta_validator = MetaValidator.from_file(
+        MODULE_TEST_DATA_DIR / "validate_meta" / yaml_file
+    )
+    meta_validator.apply(simple_df)
+    assert expected_count_message in caplog.text

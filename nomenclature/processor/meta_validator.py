@@ -167,8 +167,6 @@ class MetaValidationItem(ValidationItem, MetaFilter):
         _df = df.loc[sorted(failed_index)]
 
         if not _df.empty:
-            msg = "{} of {} meta-indicators do not satisfy the criteria"
-            logger.warning(msg.format(len(_df), len(df)))
             return _df
         return None
 
@@ -246,6 +244,13 @@ class MetaValidator(Validator):
             for item in self.criteria_items:
                 error, fail_list, output_list = item.apply(df, fail_list, output_list)
                 error_list.append(error)
+            if output_list:
+                failed_validation = pd.concat(output_list)
+                unique_failed_scenarios = len(failed_validation.index.drop_duplicates())
+                logger.warning(
+                    f"{unique_failed_scenarios} of {len(self.criteria_items)} criteria failed validation "
+                    f"({unique_failed_scenarios} of {len(df.meta)} rows)."
+                )
             if self.output_path:
                 pd.concat(output_list).to_excel(self.output_path, index=False)
             if any(error_list):

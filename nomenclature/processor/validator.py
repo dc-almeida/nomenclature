@@ -60,11 +60,11 @@ class ValidationCriteria(abc.ABC, BaseModel):
         pass
 
     def __str__(self):
-        return str(self.criteria)
+        return ", ".join([f"{key}: {value}" for key, value in self.criteria.items()])
 
 
 class ValidationValue(ValidationCriteria):
-    value: float | list = Field(..., alias="values")
+    value: float | list
     rtol: float = 0.0
     atol: float = 0.0
 
@@ -182,7 +182,7 @@ class ValidationRange(ValidationCriteria):
 
 
 class ValidationItem(BaseModel, abc.ABC):
-    """Base class for validation items (filter + criteria)."""
+    """Base class for validation items (criteria)."""
 
     name: str | None = None
     validation: list[ValidationValue | ValidationBounds | ValidationRange]
@@ -194,25 +194,16 @@ class ValidationItem(BaseModel, abc.ABC):
             self.validation, key=lambda c: c.warning_level, reverse=True
         ):
             raise ValueError(
-                f"Validation criteria for {self.criteria} not sorted"
+                f"Validation criteria for {self.name} not sorted"
                 " in descending order of severity."
             )
         else:
             return self
 
-    @property
-    def filter_args(self):
-        return self.model_dump(
-            exclude_none=True, exclude_unset=True, exclude=["validation", "name"]
-        )
-
     @abc.abstractmethod
     def apply(self, df: IamDataFrame, fail_list: list, output_list: list):
         """Apply validation to IamDataFrame."""
         pass
-
-    def __str__(self):
-        return str(self.filter_args)
 
 
 class Validator(Processor):

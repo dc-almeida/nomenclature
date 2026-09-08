@@ -24,8 +24,12 @@ class IamcDataFilter(BaseModel):
         return single_input_to_list(v)
 
     @property
-    def criteria(self):
-        return self.model_dump(exclude_none=True, exclude_unset=True)
+    def filter_args(self):
+        return self.model_dump(
+            include=set(IamcDataFilter.model_fields),
+            exclude_none=True,
+            exclude_unset=True,
+        )
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         """Check dimensions to validate against the DataStructureDefinition."""

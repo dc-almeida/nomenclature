@@ -1,8 +1,9 @@
 - name: Number Meta-Indicator Validation
   meta: number
-  value: 1
   validation:
     - warning_level: high
+      value: 1
       atol: 1
     - warning_level: medium
+      value: 1
       atol: 0.5

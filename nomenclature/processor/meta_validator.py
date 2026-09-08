@@ -39,8 +39,10 @@ class MetaFilter(BaseModel):
         return single_input_to_list(v)
 
     @property
-    def criteria(self):
-        return self.model_dump(exclude_none=True, exclude_unset=True)
+    def filter_args(self):
+        return self.model_dump(
+            exclude_none=True, exclude_unset=True, include=set(MetaFilter.model_fields)
+        )
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         """Check criteria items against the DataStructureDefinition."""
@@ -170,6 +172,9 @@ class MetaValidationItem(ValidationItem, MetaFilter):
             return _df
         return None
 
+    def __str__(self):
+        return ", ".join([f"{key}: {value}" for key, value in self.filter_args.items()])
+
 
 class MetaValidator(Validator):
     """Meta-indicator validation and processing class."""
@@ -266,7 +271,3 @@ class MetaValidator(Validator):
                 f"Error in MetaValidator (file {get_relative_path(self.file)})",
                 errors,
             )
-
-
-def repr_list(x):
-    return "'" + "', '".join(map(str, x)) + "'"

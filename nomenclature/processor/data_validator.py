@@ -85,6 +85,9 @@ class DataValidationItem(ValidationItem, IamcDataFilter):
                 )
         return error, fail_list, output_list
 
+    def __str__(self):
+        return ", ".join([f"{key}: {value}" for key, value in self.filter_args.items()])
+
 
 class DataValidator(Validator):
     """Processor for validating IAMC datapoints."""
